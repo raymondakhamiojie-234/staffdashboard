@@ -1,0 +1,185 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+}
+
+model Role {
+  id          Int      @id @default(autoincrement())
+  name        String   @unique // e.g. Founder, CEO, CTO, COO, Staff, Accounting
+  isAdmin     Boolean  @default(false)
+  // In SQLite, JSON is generally stored as String, but Prisma can handle it if we use String. Let's just use String for now in SQLite and we'll parse it.
+  permissions String?
+  users       User[]
+}
+
+model User {
+  id               Int      @id @default(autoincrement())
+  fullName         String
+  email            String   @unique
+  passwordHash     String
+  phone            String?
+  address          String?
+  roleId           Int
+  role             Role     @relation(fields: [roleId], references: [id])
+  profileImageUrl  String?
+  skills           String?
+  hobbies          String?
+  education        String?
+  workBackground   String?
+  
+  // Onboarding & Status
+  isActive         Boolean  @default(true)
+  profileStatus    String   @default("pending") // pending, completed
+  contractStatus   String   @default("pending") // pending, signed
+  policyStatus     String   @default("pending") // pending, acknowledged
+  
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+
+  tasksAssigned    Task[]   @relation("TasksAssigned")
+  tasksReceived    Task[]   @relation("TasksReceived")
+  reportsSubmitted Report[]
+  contracts        UserContract[]
+  policyAcks       UserPolicyAcknowledgement[]
+  salaries         Salary[]
+  expensesRecorded Expense[] @relation("ExpensesRecorded")
+  expensesRelated  Expense[] @relation("ExpensesRelated")
+  messagesSent     Message[] @relation("MessagesSent")
+  messagesReceived Message[] @relation("MessagesReceived")
+  notifications    Notification[]
+  companyUpdates   CompanyUpdate[] @relation("UpdatesPosted")
+}
+
+model Task {
+  id          Int      @id @default(autoincrement())
+  title       String
+  description String
+  assignedById Int
+  assignedBy  User     @relation("TasksAssigned", fields: [assignedById], references: [id])
+  assignedToId Int
+  assignedTo  User     @relation("TasksReceived", fields: [assignedToId], references: [id])
+  status      String   @default("pending") // pending, in_progress, completed
+  dueDate     DateTime?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  
+  reports     Report[]
+}
+
+model Report {
+  id          Int      @id @default(autoincrement())
+  taskId      Int
+  task        Task     @relation(fields: [taskId], references: [id])
+  submittedById Int
+  submittedBy User     @relation(fields: [submittedById], references: [id])
+  type        String   // daily, weekly, monthly
+  content     String
+  submittedAt DateTime @default(now())
+}
+
+model ContractTemplate {
+  id          Int      @id @default(autoincrement())
+  title       String
+  content     String?
+  fileUrl     String?
+  createdAt   DateTime @default(now())
+  userContracts UserContract[]
+}
+
+model UserContract {
+  id                 Int      @id @default(autoincrement())
+  userId             Int
+  user               User     @relation(fields: [userId], references: [id])
+  contractTemplateId Int
+  contractTemplate   ContractTemplate @relation(fields: [contractTemplateId], references: [id])
+  status             String   @default("pending") // pending, signed
+  signatureHash      String?
+  signedAt           DateTime?
+  createdAt          DateTime @default(now())
+}
+
+model Policy {
+  id          Int      @id @default(autoincrement())
+  title       String
+  content     String
+  createdAt   DateTime @default(now())
+  userAcks    UserPolicyAcknowledgement[]
+}
+
+model UserPolicyAcknowledgement {
+  id          Int      @id @default(autoincrement())
+  userId      Int
+  user        User     @relation(fields: [userId], references: [id])
+  policyId    Int
+  policy      Policy   @relation(fields: [policyId], references: [id])
+  acknowledgedAt DateTime @default(now())
+}
+
+model Salary {
+  id          Int      @id @default(autoincrement())
+  userId      Int
+  user        User     @relation(fields: [userId], references: [id])
+  amount      Float    // SQLite doesn't support Decimal, using Float
+  status      String   @default("pending") // paid, pending, in_review
+  effectiveDate DateTime
+  updatedAt   DateTime @updatedAt
+  createdAt   DateTime @default(now())
+}
+
+model Expense {
+  id          Int      @id @default(autoincrement())
+  title       String
+  amount      Float
+  category    String   // company, staff
+  userId      Int?     // optional, if staff related
+  user        User?    @relation("ExpensesRelated", fields: [userId], references: [id])
+  recordedById Int
+  recordedBy  User     @relation("ExpensesRecorded", fields: [recordedById], references: [id])
+  recordedAt  DateTime @default(now())
+}
+
+model Message {
+  id          Int      @id @default(autoincrement())
+  senderId    Int
+  sender      User     @relation("MessagesSent", fields: [senderId], references: [id])
+  receiverId  Int
+  receiver    User     @relation("MessagesReceived", fields: [receiverId], references: [id])
+  content     String
+  isRead      Boolean  @default(false)
+  createdAt   DateTime @default(now())
+}
+
+model Notification {
+  id          Int      @id @default(autoincrement())
+  userId      Int
+  user        User     @relation(fields: [userId], references: [id])
+  type        String   // task, salary, contract, policy, message, general
+  message     String
+  isRead      Boolean  @default(false)
+  createdAt   DateTime @default(now())
+}
+
+model CompanyUpdate {
+  id          Int      @id @default(autoincrement())
+  title       String
+  content     String
+  postedById  Int
+  postedBy    User     @relation("UpdatesPosted", fields: [postedById], references: [id])
+  createdAt   DateTime @default(now())
+}
+
+model RoadmapTarget {
+  id          Int      @id @default(autoincrement())
+  year        Int
+  title       String
+  description String
+  status      String   @default("pending") // pending, achieved
+  updatedAt   DateTime @updatedAt
+  createdAt   DateTime @default(now())
+}
