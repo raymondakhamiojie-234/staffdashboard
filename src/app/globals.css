@@ -66,6 +66,10 @@ a {
   background: rgba(255, 255, 255, 0.05);
 }
 
+.hover-glass:hover {
+  background: rgba(255, 255, 255, 0.05) !important;
+}
+
 /* Forms and Inputs */
 .input-group {
   margin-bottom: 1rem;
@@ -136,6 +140,7 @@ a {
 .dashboard-layout {
   display: flex;
   min-height: 100vh;
+  position: relative;
 }
 
 .sidebar {
@@ -147,12 +152,16 @@ a {
   position: sticky;
   top: 0;
   height: 100vh;
+  background: var(--bg-color);
+  z-index: 50;
+  transition: transform 0.3s ease;
 }
 
 .main-content {
   flex: 1;
   display: flex;
   flex-direction: column;
+  min-width: 0; /* Prevents overflow */
 }
 
 .top-header {
@@ -175,6 +184,15 @@ a {
   overflow-y: auto;
 }
 
+.menu-toggle {
+  display: none;
+  background: none;
+  border: none;
+  color: var(--text-main);
+  cursor: pointer;
+  margin-right: 1rem;
+}
+
 /* Typography */
 .page-title {
   font-size: 1.875rem;
@@ -189,4 +207,33 @@ a {
   font-size: 1.25rem;
   font-weight: 600;
   margin-bottom: 1rem;
+}
+
+/* Mobile Responsiveness */
+@media (max-width: 768px) {
+  .sidebar {
+    position: fixed;
+    transform: translateX(-100%);
+  }
+
+  .sidebar.open {
+    transform: translateX(0);
+  }
+
+  .menu-toggle {
+    display: block;
+  }
+
+  .top-header {
+    padding: 0 1rem;
+  }
+  
+  .content-area {
+    padding: 1rem;
+  }
+  
+  /* Make grid layouts stack on mobile */
+  div[style*="display: grid"] {
+    grid-template-columns: 1fr !important;
+  }
 }

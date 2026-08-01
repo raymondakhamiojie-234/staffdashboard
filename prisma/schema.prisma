@@ -6,7 +6,7 @@ generator client {
 }
 
 datasource db {
-  provider = "sqlite"
+  provider  = "postgresql"
 }
 
 model Role {
@@ -125,7 +125,8 @@ model Salary {
   id          Int      @id @default(autoincrement())
   userId      Int
   user        User     @relation(fields: [userId], references: [id])
-  amount      Float    // SQLite doesn't support Decimal, using Float
+  amount      Float    
+  currency    String   @default("USD")
   status      String   @default("pending") // paid, pending, in_review
   effectiveDate DateTime
   updatedAt   DateTime @updatedAt

@@ -21,13 +21,21 @@ export async function POST(req: Request) {
       data: {
         title,
         description,
+        assignedById: payload.userId,
         assignedToId: Number(assignedToId),
-        assignedById: payload.id as number,
-        dueDate: dueDate ? new Date(dueDate) : null,
+        dueDate: dueDate ? new Date(dueDate) : null
       }
     });
 
-    return NextResponse.json({ message: 'Task created successfully', task });
+    await prisma.notification.create({
+      data: {
+        userId: Number(assignedToId),
+        type: 'task',
+        message: `You have been assigned a new task: ${title}`
+      }
+    });
+
+    return NextResponse.json({ message: 'Task assigned successfully', task });
   } catch (error) {
     return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
   }

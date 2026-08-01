@@ -11,15 +11,23 @@ export async function POST(req: Request) {
     const payload = await verifyToken(token);
     if (!payload || !payload.isAdmin) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
 
-    const { userId, baseAmount, currency, status, effectiveDate } = await req.json();
+    const { userId, amount, currency, status, effectiveDate } = await req.json();
 
     const salary = await prisma.salary.create({
       data: {
         userId: Number(userId),
-        baseAmount: Number(baseAmount),
+        amount: Number(amount),
         currency,
         status,
         effectiveDate: new Date(effectiveDate)
+      }
+    });
+
+    await prisma.notification.create({
+      data: {
+        userId: Number(userId),
+        type: 'salary',
+        message: `A new payroll record for ${currency} ${amount} has been added.`
       }
     });
 
@@ -43,6 +51,16 @@ export async function PUT(req: Request) {
       where: { id: Number(salaryId) },
       data: { status }
     });
+
+    if (status === 'paid') {
+      await prisma.notification.create({
+        data: {
+          userId: salary.userId,
+          type: 'salary',
+          message: `Your payroll of ${salary.currency} ${salary.amount} has been marked as PAID.`
+        }
+      });
+    }
 
     return NextResponse.json({ message: 'Payroll status updated', salary });
   } catch (error) {

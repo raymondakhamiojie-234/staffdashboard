@@ -9,7 +9,7 @@ export default function PayrollClient({ staff }: { staff: any[] }) {
 
   // New salary form state
   const [userId, setUserId] = useState('');
-  const [baseAmount, setBaseAmount] = useState('');
+  const [amount, setAmount] = useState('');
   const [currency, setCurrency] = useState('USD');
   const [effectiveDate, setEffectiveDate] = useState('');
   const [status, setStatus] = useState('pending');
@@ -23,12 +23,12 @@ export default function PayrollClient({ staff }: { staff: any[] }) {
       const res = await fetch('/api/admin/payroll', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ userId, baseAmount, currency, effectiveDate, status })
+        body: JSON.stringify({ userId, amount, currency, effectiveDate, status })
       });
 
       if (!res.ok) throw new Error('Failed to create payroll record');
       
-      setBaseAmount('');
+      setAmount('');
       setEffectiveDate('');
       setUserId('');
       router.refresh();
@@ -77,7 +77,7 @@ export default function PayrollClient({ staff }: { staff: any[] }) {
               <div style={{ display: 'flex', gap: '1rem' }}>
                 <div className="input-group" style={{ flex: 2 }}>
                   <label className="input-label">Amount</label>
-                  <input type="number" step="0.01" className="input-field" value={baseAmount} onChange={e => setBaseAmount(e.target.value)} required />
+                  <input type="number" step="0.01" className="input-field" value={amount} onChange={e => setAmount(e.target.value)} required />
                 </div>
                 <div className="input-group" style={{ flex: 1 }}>
                   <label className="input-label">Currency</label>
@@ -133,7 +133,7 @@ export default function PayrollClient({ staff }: { staff: any[] }) {
                       {user.salaries.map((salary: any) => (
                         <tr key={salary.id} style={{ borderBottom: '1px solid rgba(255,255,255,0.05)' }}>
                           <td style={{ padding: '0.75rem', fontWeight: 600 }}>
-                            {salary.currency} {parseFloat(salary.baseAmount).toLocaleString()}
+                            {salary.currency} {parseFloat(salary.amount).toLocaleString()}
                           </td>
                           <td style={{ padding: '0.75rem', color: 'var(--text-muted)' }}>
                             {new Date(salary.effectiveDate).toLocaleDateString()}
