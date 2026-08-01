@@ -5,7 +5,7 @@ import { redirect } from 'next/navigation';
 import PayrollClient from './PayrollClient';
 
 export default async function AdminPayrollPage() {
-  const token = cookies().get('auth_token')?.value;
+  const token = (await cookies()).get('auth_token')?.value;
   if (!token) redirect('/login');
   
   const payload = await verifyToken(token);

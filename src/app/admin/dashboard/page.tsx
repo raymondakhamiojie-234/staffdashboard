@@ -5,7 +5,7 @@ import { redirect } from 'next/navigation';
 import Link from 'next/link';
 
 export default async function AdminDashboard() {
-  const token = cookies().get('auth_token')?.value;
+  const token = (await cookies()).get('auth_token')?.value;
   if (!token) redirect('/login');
   
   const payload = await verifyToken(token);
@@ -14,7 +14,7 @@ export default async function AdminDashboard() {
   // Fetch some stats
   const totalStaff = await prisma.user.count({ where: { role: { isAdmin: false } } });
   const pendingTasks = await prisma.task.count({ where: { status: { in: ['pending', 'in_progress'] } } });
-  const activeRoadmaps = await prisma.roadmap.count({ where: { status: 'in_progress' } });
+  const activeRoadmaps = await prisma.roadmapTarget.count({ where: { status: 'in_progress' } });
   
   // Recent staff
   const recentStaff = await prisma.user.findMany({

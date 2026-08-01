@@ -5,14 +5,14 @@ import { verifyToken } from '@/lib/jwt';
 
 export async function GET() {
   try {
-    const token = cookies().get('auth_token')?.value;
+    const token = (await cookies()).get('auth_token')?.value;
     if (!token) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
 
     const payload = await verifyToken(token);
     if (!payload) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
 
     const notifications = await prisma.notification.findMany({
-      where: { userId: payload.userId },
+      where: { userId: Number(payload.userId) },
       orderBy: { createdAt: 'desc' },
       take: 20
     });
@@ -25,7 +25,7 @@ export async function GET() {
 
 export async function PUT(req: Request) {
   try {
-    const token = cookies().get('auth_token')?.value;
+    const token = (await cookies()).get('auth_token')?.value;
     if (!token) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
 
     const payload = await verifyToken(token);
@@ -35,13 +35,13 @@ export async function PUT(req: Request) {
 
     if (notificationId) {
       await prisma.notification.update({
-        where: { id: Number(notificationId), userId: payload.userId },
+        where: { id: Number(notificationId), userId: Number(payload.userId) },
         data: { isRead: true }
       });
     } else {
       // Mark all as read
       await prisma.notification.updateMany({
-        where: { userId: payload.userId, isRead: false },
+        where: { userId: Number(payload.userId), isRead: false },
         data: { isRead: true }
       });
     }

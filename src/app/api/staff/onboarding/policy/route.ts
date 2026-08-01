@@ -5,7 +5,7 @@ import { verifyToken, signToken } from '@/lib/jwt';
 
 export async function POST() {
   try {
-    const token = cookies().get('auth_token')?.value;
+    const token = (await cookies()).get('auth_token')?.value;
     if (!token) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
 
     const payload = await verifyToken(token);
@@ -30,7 +30,7 @@ export async function POST() {
 
     const newToken = await signToken(newPayload);
 
-    cookies().set({
+    (await cookies()).set({
       name: 'auth_token',
       value: newToken,
       httpOnly: true,

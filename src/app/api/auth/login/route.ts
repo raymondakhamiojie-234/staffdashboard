@@ -50,7 +50,7 @@ export async function POST(req: Request) {
     const token = await signToken(payload);
 
     // Set cookie
-    cookies().set({
+    (await cookies()).set({
       name: 'auth_token',
       value: token,
       httpOnly: true,

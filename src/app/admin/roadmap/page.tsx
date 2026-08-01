@@ -5,14 +5,14 @@ import { redirect } from 'next/navigation';
 import RoadmapClient from './RoadmapClient';
 
 export default async function AdminRoadmapPage() {
-  const token = cookies().get('auth_token')?.value;
+  const token = (await cookies()).get('auth_token')?.value;
   if (!token) redirect('/login');
   
   const payload = await verifyToken(token);
   if (!payload || !payload.isAdmin) redirect('/login');
 
-  const roadmapItems = await prisma.roadmap.findMany({
-    orderBy: { targetDate: 'asc' }
+  const roadmapItems = await prisma.roadmapTarget.findMany({
+    orderBy: { year: 'asc' }
   });
 
   return <RoadmapClient initialItems={roadmapItems} />;

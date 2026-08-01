@@ -5,7 +5,7 @@ import { redirect } from 'next/navigation';
 import TasksAdminClient from './TasksAdminClient';
 
 export default async function AdminTasksPage() {
-  const token = cookies().get('auth_token')?.value;
+  const token = (await cookies()).get('auth_token')?.value;
   if (!token) redirect('/login');
   
   const payload = await verifyToken(token);

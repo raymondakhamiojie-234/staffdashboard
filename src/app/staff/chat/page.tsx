@@ -4,7 +4,7 @@ import { redirect } from 'next/navigation';
 import ChatClient from '@/components/ChatClient';
 
 export default async function StaffChatPage() {
-  const token = cookies().get('auth_token')?.value;
+  const token = (await cookies()).get('auth_token')?.value;
   if (!token) redirect('/login');
   
   const payload = await verifyToken(token);
@@ -14,7 +14,7 @@ export default async function StaffChatPage() {
     <div>
       <h1 className="page-title">Company Chat</h1>
       <p style={{ color: 'var(--text-muted)', marginBottom: '2rem' }}>Direct messaging with colleagues and administrators.</p>
-      <ChatClient currentUserId={payload.userId} />
+      <ChatClient currentUserId={Number(payload.userId)} />
     </div>
   );
 }

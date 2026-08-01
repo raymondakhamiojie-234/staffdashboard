@@ -5,7 +5,7 @@ import { verifyToken } from '@/lib/jwt';
 
 export async function POST(req: Request) {
   try {
-    const token = cookies().get('auth_token')?.value;
+    const token = (await cookies()).get('auth_token')?.value;
     if (!token) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
 
     const payload = await verifyToken(token);
@@ -21,7 +21,7 @@ export async function POST(req: Request) {
       data: {
         title,
         description,
-        assignedById: payload.userId,
+        assignedById: Number(payload.userId),
         assignedToId: Number(assignedToId),
         dueDate: dueDate ? new Date(dueDate) : null
       }
@@ -43,7 +43,7 @@ export async function POST(req: Request) {
 
 export async function PUT(req: Request) {
   try {
-    const token = cookies().get('auth_token')?.value;
+    const token = (await cookies()).get('auth_token')?.value;
     if (!token) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
 
     const payload = await verifyToken(token);

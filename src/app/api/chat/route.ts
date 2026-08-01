@@ -5,7 +5,7 @@ import { verifyToken } from '@/lib/jwt';
 
 export async function GET(req: Request) {
   try {
-    const token = cookies().get('auth_token')?.value;
+    const token = (await cookies()).get('auth_token')?.value;
     if (!token) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
 
     const payload = await verifyToken(token);
@@ -18,8 +18,8 @@ export async function GET(req: Request) {
     const messages = await prisma.message.findMany({
       where: {
         OR: [
-          { senderId: payload.userId, receiverId: Number(contactId) },
-          { senderId: Number(contactId), receiverId: payload.userId }
+          { senderId: (Number(payload.userId)), receiverId: Number(contactId) },
+          { senderId: Number(contactId), receiverId: (Number(payload.userId)) }
         ]
       },
       orderBy: { createdAt: 'asc' },
@@ -31,7 +31,7 @@ export async function GET(req: Request) {
 
     // Mark received messages as read
     await prisma.message.updateMany({
-      where: { senderId: Number(contactId), receiverId: payload.userId, isRead: false },
+      where: { senderId: Number(contactId), receiverId: (Number(payload.userId)), isRead: false },
       data: { isRead: true }
     });
 
@@ -43,7 +43,7 @@ export async function GET(req: Request) {
 
 export async function POST(req: Request) {
   try {
-    const token = cookies().get('auth_token')?.value;
+    const token = (await cookies()).get('auth_token')?.value;
     if (!token) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
 
     const payload = await verifyToken(token);
@@ -53,14 +53,14 @@ export async function POST(req: Request) {
 
     const message = await prisma.message.create({
       data: {
-        senderId: payload.userId,
+        senderId: (Number(payload.userId)),
         receiverId: Number(receiverId),
         content
       }
     });
 
     // Trigger a notification for the receiver
-    const sender = await prisma.user.findUnique({ where: { id: payload.userId } });
+    const sender = await prisma.user.findUnique({ where: { id: (Number(payload.userId)) } });
     await prisma.notification.create({
       data: {
         userId: Number(receiverId),
