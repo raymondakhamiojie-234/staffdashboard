@@ -26,7 +26,7 @@ export default async function StaffDashboard() {
 
   if (!user) redirect('/login');
 
-  const pendingTasks = user.tasksReceived.filter(t => t.status === 'pending' || t.status === 'in_progress');
+  const pendingTasks = user.tasksReceived.filter((t: any) => t.status === 'pending' || t.status === 'in_progress');
   const latestSalary = user.salaries[0];
 
   return (
@@ -67,7 +67,7 @@ export default async function StaffDashboard() {
             <p style={{ color: 'var(--text-muted)' }}>You have no assigned tasks right now.</p>
           ) : (
             <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-              {user.tasksReceived.map(task => (
+              {user.tasksReceived.map((task: any) => (
                 <div key={task.id} style={{ 
                   display: 'flex', justifyContent: 'space-between', alignItems: 'center', 
                   padding: '1rem', background: 'rgba(255,255,255,0.03)', borderRadius: '8px',
