@@ -60,7 +60,7 @@ export default async function AdminDashboard() {
           <p style={{ color: 'var(--text-muted)' }}>No staff members found.</p>
         ) : (
           <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-            {recentStaff.map(staff => (
+            {recentStaff.map((staff: any) => (
               <div key={staff.id} style={{ 
                 display: 'flex', justifyContent: 'space-between', alignItems: 'center', 
                 padding: '1rem', background: 'rgba(255,255,255,0.03)', borderRadius: '8px'
