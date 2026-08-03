@@ -15,7 +15,7 @@ export async function GET() {
     const users = await prisma.user.findMany({
       where: { 
         isActive: true,
-        id: { not: Number(payload.userId) }
+        id: { not: Number(payload.id) }
       },
       select: {
         id: true,
