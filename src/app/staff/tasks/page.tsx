@@ -15,7 +15,11 @@ export default async function TasksPage() {
     where: { assignedToId: payload.id as number },
     include: {
       assignedBy: { select: { fullName: true } },
-      reports: { orderBy: { submittedAt: 'desc' } }
+      reports: { 
+        orderBy: { submittedAt: 'desc' },
+        include: { replies: { include: { sender: { select: { fullName: true } } }, orderBy: { createdAt: 'asc' } } }
+      },
+      taskFiles: true
     },
     orderBy: { createdAt: 'desc' }
   });

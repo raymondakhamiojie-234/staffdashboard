@@ -2,6 +2,8 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
+import { Upload, FileText, Clock } from 'lucide-react';
+import ReportReplies from '@/components/ReportReplies';
 
 export default function TasksClient({ tasks }: { tasks: any[] }) {
   const router = useRouter();
@@ -11,6 +13,7 @@ export default function TasksClient({ tasks }: { tasks: any[] }) {
   const [reportContent, setReportContent] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState('');
+  const [uploadingTaskFileId, setUploadingTaskFileId] = useState<number | null>(null);
 
   const submitReport = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -38,10 +41,46 @@ export default function TasksClient({ tasks }: { tasks: any[] }) {
       setReportContent('');
       setSelectedTask(null);
       router.refresh();
+      window.location.reload();
     } catch (err: any) {
       setError(err.message);
     } finally {
       setIsSubmitting(false);
+    }
+  };
+
+  const handleFileUpload = async (taskId: number, file: File) => {
+    if (file.type !== 'application/pdf') {
+      alert('Only PDF files are allowed.');
+      return;
+    }
+    if (file.size > 5 * 1024 * 1024) {
+      alert('File must be smaller than 5MB.');
+      return;
+    }
+
+    setUploadingTaskFileId(taskId);
+    try {
+      const formData = new FormData();
+      formData.append('file', file);
+      formData.append('taskId', taskId.toString());
+
+      const res = await fetch('/api/upload/task-file', {
+        method: 'POST',
+        body: formData
+      });
+
+      if (!res.ok) {
+        const errorData = await res.json();
+        throw new Error(errorData.error || 'Failed to upload file');
+      }
+      
+      router.refresh();
+      window.location.reload();
+    } catch (error: any) {
+      alert(error.message);
+    } finally {
+      setUploadingTaskFileId(null);
     }
   };
 
@@ -66,7 +105,12 @@ export default function TasksClient({ tasks }: { tasks: any[] }) {
                 onClick={() => setSelectedTask(task)}
               >
                 <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.5rem' }}>
-                  <h3 style={{ fontSize: '1.125rem', fontWeight: 600 }}>{task.title}</h3>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                    <h3 style={{ fontSize: '1.125rem', fontWeight: 600 }}>{task.title}</h3>
+                    {task.priority === 'primary' && (
+                      <span style={{ fontSize: '0.65rem', padding: '2px 6px', background: 'var(--danger)', color: 'white', borderRadius: '4px', fontWeight: 600 }}>PRIMARY</span>
+                    )}
+                  </div>
                   <span style={{ 
                     padding: '4px 8px', borderRadius: '4px', fontSize: '0.75rem', fontWeight: 600,
                     background: task.status === 'completed' ? 'rgba(16,185,129,0.1)' : 'rgba(245,158,11,0.1)',
@@ -80,8 +124,19 @@ export default function TasksClient({ tasks }: { tasks: any[] }) {
                 </p>
                 <p style={{ fontSize: '0.875rem' }}>{task.description}</p>
                 
+                {/* Embedded File List for quick view */}
+                {task.files && task.files.length > 0 && (
+                  <div style={{ marginTop: '1rem', display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
+                    {task.files.map((file: any) => (
+                       <a key={file.id} href={file.fileUrl} target="_blank" rel="noreferrer" style={{ fontSize: '0.75rem', display: 'flex', alignItems: 'center', gap: '4px', background: 'rgba(255,255,255,0.05)', padding: '4px 8px', borderRadius: '4px', color: 'var(--primary)' }} onClick={(e) => e.stopPropagation()}>
+                         <FileText size={12} /> {file.fileName}
+                       </a>
+                    ))}
+                  </div>
+                )}
+                
                 <div style={{ marginTop: '1rem', fontSize: '0.75rem', color: 'var(--text-muted)' }}>
-                  {task.reports?.length} Reports Submitted
+                  {task.reports?.length || 0} Reports Submitted
                 </div>
               </div>
             ))
@@ -91,7 +146,34 @@ export default function TasksClient({ tasks }: { tasks: any[] }) {
         <div>
           {selectedTask ? (
             <div className="glass-panel" style={{ padding: '2rem', position: 'sticky', top: '100px' }}>
-              <h3 className="section-title">Submit Report for: {selectedTask.title}</h3>
+              <h3 className="section-title">Task Details: {selectedTask.title}</h3>
+
+              {/* Task Files Section */}
+              <div style={{ background: 'rgba(255,255,255,0.02)', padding: '1rem', borderRadius: '8px', marginBottom: '2rem' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
+                  <h4 style={{ fontSize: '0.875rem', fontWeight: 600 }}>Attached Files</h4>
+                  <div>
+                    <input type="file" id={`file-upload-staff-${selectedTask.id}`} accept="application/pdf" style={{ display: 'none' }} onChange={(e) => {
+                      if (e.target.files && e.target.files[0]) handleFileUpload(selectedTask.id, e.target.files[0]);
+                    }} />
+                    <label htmlFor={`file-upload-staff-${selectedTask.id}`} className="btn btn-primary" style={{ cursor: 'pointer', padding: '6px 12px', fontSize: '0.75rem', display: 'flex', gap: '8px', alignItems: 'center' }}>
+                      {uploadingTaskFileId === selectedTask.id ? 'Uploading...' : <><Upload size={14} /> Upload PDF</>}
+                    </label>
+                  </div>
+                </div>
+                {selectedTask.files && selectedTask.files.length > 0 ? (
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                    {selectedTask.files.map((file: any) => (
+                      <div key={file.id} style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '0.875rem' }}>
+                        <FileText size={16} color="var(--primary)" />
+                        <a href={file.fileUrl} target="_blank" rel="noreferrer" style={{ color: 'var(--primary)', textDecoration: 'underline' }}>{file.fileName}</a>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <p style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>No files attached.</p>
+                )}
+              </div>
               
               {error && <div style={{ color: 'var(--danger)', marginBottom: '1rem' }}>{error}</div>}
               
@@ -133,11 +215,12 @@ export default function TasksClient({ tasks }: { tasks: any[] }) {
                           <span>{new Date(r.submittedAt).toLocaleDateString()}</span>
                         </div>
                         <p style={{ fontSize: '0.875rem' }}>{r.content}</p>
+                        <ReportReplies reportId={r.id} initialReplies={r.replies || []} />
                       </div>
                     ))}
                   </div>
                 ) : (
-                  <p style={{ fontSize: '0.875rem', color: 'var(--text-muted)' }}>No reports submitted yet.</p>
+                  <p style={{ fontSize: '0.875rem', color: 'var(--text-muted)', display: 'flex', alignItems: 'center', gap: '8px' }}><Clock size={16} /> No reports submitted yet.</p>
                 )}
               </div>
             </div>
@@ -151,3 +234,4 @@ export default function TasksClient({ tasks }: { tasks: any[] }) {
     </div>
   );
 }
+

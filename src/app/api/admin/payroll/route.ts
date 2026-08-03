@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import { cookies } from 'next/headers';
 import prisma from '@/lib/prisma';
 import { verifyToken } from '@/lib/jwt';
+import { logActivity } from '@/lib/activity';
 
 export async function POST(req: Request) {
   try {
@@ -23,6 +24,15 @@ export async function POST(req: Request) {
       }
     });
 
+    await prisma.payrollStatusHistory.create({
+      data: {
+        salaryId: salary.id,
+        status: status,
+        updatedById: Number(payload.id),
+        note: 'Initial payroll creation'
+      }
+    });
+
     await prisma.notification.create({
       data: {
         userId: Number(userId),
@@ -31,8 +41,11 @@ export async function POST(req: Request) {
       }
     });
 
+    await logActivity('Created Payroll', `Created payroll for user ID ${userId}`, Number(payload.id));
+
     return NextResponse.json({ message: 'Payroll record created', salary });
   } catch (error) {
+    console.error(error);
     return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
   }
 }
@@ -45,25 +58,48 @@ export async function PUT(req: Request) {
     const payload = await verifyToken(token);
     if (!payload || !payload.isAdmin) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
 
-    const { salaryId, status } = await req.json();
+    const { salaryId, status, adminNote } = await req.json();
 
     const salary = await prisma.salary.update({
       where: { id: Number(salaryId) },
-      data: { status }
+      data: { 
+        status,
+        adminNote: adminNote || null
+      }
     });
 
+    await prisma.payrollStatusHistory.create({
+      data: {
+        salaryId: salary.id,
+        status: status,
+        updatedById: Number(payload.id),
+        note: adminNote || null
+      }
+    });
+
+    let message = '';
     if (status === 'paid') {
-      await prisma.notification.create({
-        data: {
-          userId: salary.userId,
-          type: 'salary',
-          message: `Your payroll of ${salary.currency} ${salary.amount} has been marked as PAID.`
-        }
-      });
+      message = `Your payroll of ${salary.currency} ${salary.amount} has been marked as PAID.`;
+    } else if (status === 'suspended') {
+      message = `Your payroll has been SUSPENDED. Reason: ${adminNote || 'No reason provided'}`;
+    } else {
+      message = `Your payroll status is now: ${status.replace('_', ' ').toUpperCase()}`;
     }
+
+    await prisma.notification.create({
+      data: {
+        userId: salary.userId,
+        type: 'salary',
+        message
+      }
+    });
+
+    await logActivity('Updated Payroll Status', `Updated salary ID ${salaryId} to ${status}`, Number(payload.id));
 
     return NextResponse.json({ message: 'Payroll status updated', salary });
   } catch (error) {
+    console.error(error);
     return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
   }
 }
+

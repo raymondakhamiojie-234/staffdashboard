@@ -15,7 +15,11 @@ export default async function AdminTasksPage() {
     include: {
       assignedTo: { select: { fullName: true, id: true } },
       assignedBy: { select: { fullName: true } },
-      reports: { orderBy: { submittedAt: 'desc' } }
+      reports: { 
+        orderBy: { submittedAt: 'desc' },
+        include: { replies: { include: { sender: { select: { fullName: true } } }, orderBy: { createdAt: 'asc' } } }
+      },
+      taskFiles: true
     },
     orderBy: { createdAt: 'desc' }
   });

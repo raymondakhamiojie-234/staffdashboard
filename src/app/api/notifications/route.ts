@@ -12,7 +12,7 @@ export async function GET() {
     if (!payload) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
 
     const notifications = await prisma.notification.findMany({
-      where: { userId: Number(payload.userId) },
+      where: { userId: Number(payload.id) },
       orderBy: { createdAt: 'desc' },
       take: 20
     });
@@ -35,13 +35,13 @@ export async function PUT(req: Request) {
 
     if (notificationId) {
       await prisma.notification.update({
-        where: { id: Number(notificationId), userId: Number(payload.userId) },
+        where: { id: Number(notificationId), userId: Number(payload.id) },
         data: { isRead: true }
       });
     } else {
       // Mark all as read
       await prisma.notification.updateMany({
-        where: { userId: Number(payload.userId), isRead: false },
+        where: { userId: Number(payload.id), isRead: false },
         data: { isRead: true }
       });
     }

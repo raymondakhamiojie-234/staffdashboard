@@ -54,33 +54,90 @@ model User {
   messagesReceived Message[] @relation("MessagesReceived")
   notifications    Notification[]
   companyUpdates   CompanyUpdate[] @relation("UpdatesPosted")
+
+  // New Relations
+  projectsLed          Project[] @relation("ProjectLeader")
+  projectMemberships   ProjectMember[]
+  activityLogs         ActivityLog[]
+  reportReplies        ReportReply[]
+  payrollStatusUpdates PayrollStatusHistory[] @relation("PayrollStatusUpdatedBy")
+  projectMessages      ProjectMessage[]
+  projectFiles         ProjectFile[]
+  taskFiles            TaskFile[]
+  
+  // Phase 2 Relations
+  invoices             Invoice[]
+  performanceScores    PerformanceScore[]
+  meetingsCreated      Meeting[] @relation("MeetingsCreated")
 }
 
 model Task {
-  id          Int      @id @default(autoincrement())
-  title       String
-  description String
+  id           Int      @id @default(autoincrement())
+  title        String
+  description  String
   assignedById Int
-  assignedBy  User     @relation("TasksAssigned", fields: [assignedById], references: [id])
+  assignedBy   User     @relation("TasksAssigned", fields: [assignedById], references: [id])
   assignedToId Int
-  assignedTo  User     @relation("TasksReceived", fields: [assignedToId], references: [id])
-  status      String   @default("pending") // pending, in_progress, completed
-  dueDate     DateTime?
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  assignedTo   User     @relation("TasksReceived", fields: [assignedToId], references: [id])
   
-  reports     Report[]
+  // Status & Priority
+  status       String   @default("pending") // pending, in_progress, completed, archived
+  priority     String   @default("primary") // primary, secondary
+  isDeleted    Boolean  @default(false) // Soft delete
+
+  // Hierarchy (Primary/Secondary)
+  parentId     Int?
+  parentTask   Task?    @relation("TaskHierarchy", fields: [parentId], references: [id])
+  subTasks     Task[]   @relation("TaskHierarchy")
+
+  // Project linkage
+  projectId    Int?
+  project      Project? @relation(fields: [projectId], references: [id])
+
+  dueDate      DateTime?
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+  
+  reports      Report[]
+  taskFiles    TaskFile[]
+}
+
+model TaskFile {
+  id           Int      @id @default(autoincrement())
+  taskId       Int
+  task         Task     @relation(fields: [taskId], references: [id])
+  uploadedById Int
+  uploadedBy   User     @relation(fields: [uploadedById], references: [id])
+  fileName     String
+  fileUrl      String
+  fileSize     Int?
+  fileType     String?
+  createdAt    DateTime @default(now())
 }
 
 model Report {
-  id          Int      @id @default(autoincrement())
-  taskId      Int
-  task        Task     @relation(fields: [taskId], references: [id])
+  id            Int      @id @default(autoincrement())
+  taskId        Int
+  task          Task     @relation(fields: [taskId], references: [id])
   submittedById Int
-  submittedBy User     @relation(fields: [submittedById], references: [id])
-  type        String   // daily, weekly, monthly
+  submittedBy   User     @relation(fields: [submittedById], references: [id])
+  type          String   // daily, weekly, monthly
+  content       String
+  submittedAt   DateTime @default(now())
+
+  replies       ReportReply[]
+}
+
+model ReportReply {
+  id          Int      @id @default(autoincrement())
+  reportId    Int
+  report      Report   @relation(fields: [reportId], references: [id])
+  senderId    Int
+  sender      User     @relation(fields: [senderId], references: [id])
   content     String
-  submittedAt DateTime @default(now())
+  fileUrl     String?  // Optional attachment in reply
+  isRead      Boolean  @default(false)
+  createdAt   DateTime @default(now())
 }
 
 model ContractTemplate {
@@ -122,15 +179,30 @@ model UserPolicyAcknowledgement {
 }
 
 model Salary {
-  id          Int      @id @default(autoincrement())
-  userId      Int
-  user        User     @relation(fields: [userId], references: [id])
-  amount      Float    
-  currency    String   @default("USD")
-  status      String   @default("pending") // paid, pending, in_review
+  id            Int      @id @default(autoincrement())
+  userId        Int
+  user          User     @relation(fields: [userId], references: [id])
+  amount        Float    
+  currency      String   @default("USD")
+  status        String   @default("pending") // paid, pending, in_review, suspended
+  adminNote     String?  // Reason for suspension or other notes
   effectiveDate DateTime
-  updatedAt   DateTime @updatedAt
-  createdAt   DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+  createdAt     DateTime @default(now())
+
+  statusHistory PayrollStatusHistory[]
+  invoice       Invoice?
+}
+
+model PayrollStatusHistory {
+  id            Int      @id @default(autoincrement())
+  salaryId      Int
+  salary        Salary   @relation(fields: [salaryId], references: [id])
+  status        String
+  note          String?
+  updatedById   Int
+  updatedBy     User     @relation("PayrollStatusUpdatedBy", fields: [updatedById], references: [id])
+  createdAt     DateTime @default(now())
 }
 
 model Expense {
@@ -160,7 +232,7 @@ model Notification {
   id          Int      @id @default(autoincrement())
   userId      Int
   user        User     @relation(fields: [userId], references: [id])
-  type        String   // task, salary, contract, policy, message, general
+  type        String   // task, salary, contract, policy, message, general, project
   message     String
   isRead      Boolean  @default(false)
   createdAt   DateTime @default(now())
@@ -184,3 +256,111 @@ model RoadmapTarget {
   updatedAt   DateTime @updatedAt
   createdAt   DateTime @default(now())
 }
+
+// -----------------------------------------------------------------------------
+// NEW PROJECT MODULE
+// -----------------------------------------------------------------------------
+
+model Project {
+  id          Int      @id @default(autoincrement())
+  title       String
+  description String?
+  status      String   @default("active") // active, completed, overdue
+  leaderId    Int
+  leader      User     @relation("ProjectLeader", fields: [leaderId], references: [id])
+  deadline    DateTime?
+  progress    Int      @default(0) // Percentage 0-100
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  members     ProjectMember[]
+  tasks       Task[]
+  messages    ProjectMessage[]
+  files       ProjectFile[]
+}
+
+model ProjectMember {
+  id          Int      @id @default(autoincrement())
+  projectId   Int
+  project     Project  @relation(fields: [projectId], references: [id])
+  userId      Int
+  user        User     @relation(fields: [userId], references: [id])
+  role        String   @default("member") // leader, member
+  joinedAt    DateTime @default(now())
+}
+
+model ProjectMessage {
+  id          Int      @id @default(autoincrement())
+  projectId   Int
+  project     Project  @relation(fields: [projectId], references: [id])
+  senderId    Int
+  sender      User     @relation(fields: [senderId], references: [id])
+  content     String
+  createdAt   DateTime @default(now())
+}
+
+model ProjectFile {
+  id          Int      @id @default(autoincrement())
+  projectId   Int
+  project     Project  @relation(fields: [projectId], references: [id])
+  uploadedById Int
+  uploadedBy  User     @relation(fields: [uploadedById], references: [id])
+  fileName    String
+  fileUrl     String
+  createdAt   DateTime @default(now())
+}
+
+// -----------------------------------------------------------------------------
+// AUDIT LOG
+// -----------------------------------------------------------------------------
+
+model ActivityLog {
+  id          Int      @id @default(autoincrement())
+  userId      Int?
+  user        User?    @relation(fields: [userId], references: [id])
+  action      String   // e.g. "Deleted Task", "Suspended Payroll", "Archived Task"
+  details     String?  // JSON string or extra context
+  ipAddress   String?
+  createdAt   DateTime @default(now())
+}
+
+// -----------------------------------------------------------------------------
+// PHASE 2 ADVANCED SYSTEMS
+// -----------------------------------------------------------------------------
+
+model Invoice {
+  id          Int      @id @default(autoincrement())
+  salaryId    Int      @unique
+  salary      Salary   @relation(fields: [salaryId], references: [id])
+  userId      Int
+  user        User     @relation(fields: [userId], references: [id])
+  fileUrl     String
+  status      String   @default("generated") // generated, sent
+  createdAt   DateTime @default(now())
+}
+
+model PerformanceScore {
+  id             Int      @id @default(autoincrement())
+  userId         Int
+  user           User     @relation(fields: [userId], references: [id])
+  score          Int      // 0 - 100
+  category       String   // Excellent, Good, Average, Needs Improvement
+  recommendation String?  // AI's recommendation (e.g. Salary Increase, Warning)
+  details        String?  // JSON string containing the breakdown of the score
+  month          Int
+  year           Int
+  createdAt      DateTime @default(now())
+}
+
+model Meeting {
+  id          Int      @id @default(autoincrement())
+  title       String
+  description String?
+  link        String
+  scheduledAt DateTime
+  createdById Int
+  createdBy   User     @relation("MeetingsCreated", fields: [createdById], references: [id])
+  status      String   @default("scheduled") // scheduled, completed, cancelled
+  createdAt   DateTime @default(now())
+}
+

@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { DollarSign, CheckCircle } from 'lucide-react';
+import { DollarSign, CheckCircle, AlertTriangle, Clock } from 'lucide-react';
 
 export default function PayrollClient({ staff }: { staff: any[] }) {
   const router = useRouter();
@@ -14,6 +14,11 @@ export default function PayrollClient({ staff }: { staff: any[] }) {
   const [effectiveDate, setEffectiveDate] = useState('');
   const [status, setStatus] = useState('pending');
   const [loading, setLoading] = useState(false);
+
+  // Update status modal state
+  const [updatingSalary, setUpdatingSalary] = useState<any | null>(null);
+  const [newStatus, setNewStatus] = useState('');
+  const [adminNote, setAdminNote] = useState('');
 
   const handleCreateSalary = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -32,6 +37,7 @@ export default function PayrollClient({ staff }: { staff: any[] }) {
       setEffectiveDate('');
       setUserId('');
       router.refresh();
+      window.location.reload();
     } catch (error) {
       alert('Error creating payroll record');
     } finally {
@@ -39,14 +45,20 @@ export default function PayrollClient({ staff }: { staff: any[] }) {
     }
   };
 
-  const markPaid = async (salaryId: number) => {
+  const handleUpdateStatus = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!updatingSalary) return;
+
     try {
       await fetch('/api/admin/payroll', {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ salaryId, status: 'paid' })
+        body: JSON.stringify({ salaryId: updatingSalary.id, status: newStatus, adminNote })
       });
+      setUpdatingSalary(null);
+      setAdminNote('');
       router.refresh();
+      window.location.reload();
     } catch (error) {
       alert('Error updating payroll');
     }
@@ -99,7 +111,9 @@ export default function PayrollClient({ staff }: { staff: any[] }) {
                 <label className="input-label">Status</label>
                 <select className="input-field" value={status} onChange={e => setStatus(e.target.value)}>
                   <option value="pending">Pending</option>
+                  <option value="in_review">In Review</option>
                   <option value="paid">Paid</option>
+                  <option value="suspended">Suspended</option>
                 </select>
               </div>
 
@@ -134,29 +148,46 @@ export default function PayrollClient({ staff }: { staff: any[] }) {
                         <tr key={salary.id} style={{ borderBottom: '1px solid rgba(255,255,255,0.05)' }}>
                           <td style={{ padding: '0.75rem', fontWeight: 600 }}>
                             {salary.currency} {parseFloat(salary.amount).toLocaleString()}
+                            {salary.adminNote && (
+                              <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)', marginTop: '4px' }}>Note: {salary.adminNote}</div>
+                            )}
                           </td>
                           <td style={{ padding: '0.75rem', color: 'var(--text-muted)' }}>
                             {new Date(salary.effectiveDate).toLocaleDateString()}
                           </td>
                           <td style={{ padding: '0.75rem' }}>
                             <span style={{ 
-                              padding: '2px 8px', borderRadius: '4px', fontSize: '0.75rem', fontWeight: 600,
-                              background: salary.status === 'paid' ? 'rgba(16,185,129,0.1)' : 'rgba(245,158,11,0.1)',
-                              color: salary.status === 'paid' ? 'var(--secondary)' : 'var(--warning)'
+                              padding: '4px 8px', borderRadius: '4px', fontSize: '0.75rem', fontWeight: 600,
+                              background: salary.status === 'paid' ? 'rgba(16,185,129,0.1)' : salary.status === 'suspended' ? 'rgba(239,68,68,0.1)' : 'rgba(245,158,11,0.1)',
+                              color: salary.status === 'paid' ? 'var(--secondary)' : salary.status === 'suspended' ? 'var(--danger)' : 'var(--warning)'
                             }}>
                               {salary.status.toUpperCase()}
                             </span>
+                            
+                            {/* History view */}
+                            {salary.statusHistory && salary.statusHistory.length > 0 && (
+                              <div style={{ marginTop: '8px', fontSize: '0.7rem', color: 'var(--text-muted)', borderLeft: '2px solid rgba(255,255,255,0.1)', paddingLeft: '8px' }}>
+                                {salary.statusHistory.map((history: any) => (
+                                  <div key={history.id} style={{ display: 'flex', gap: '4px', marginBottom: '2px' }}>
+                                    <Clock size={10} style={{ marginTop: '2px' }} />
+                                    <span>{new Date(history.createdAt).toLocaleDateString()} - <strong style={{ color: 'white' }}>{history.status.toUpperCase()}</strong></span>
+                                  </div>
+                                ))}
+                              </div>
+                            )}
                           </td>
                           <td style={{ padding: '0.75rem', textAlign: 'right' }}>
-                            {salary.status !== 'paid' && (
-                              <button 
-                                onClick={() => markPaid(salary.id)}
-                                className="btn" 
-                                style={{ padding: '4px 8px', fontSize: '0.75rem', background: 'var(--secondary)', color: 'white' }}
-                              >
-                                Mark Paid
-                              </button>
-                            )}
+                            <button 
+                              onClick={() => {
+                                setUpdatingSalary(salary);
+                                setNewStatus(salary.status);
+                                setAdminNote(salary.adminNote || '');
+                              }}
+                              className="btn" 
+                              style={{ padding: '4px 12px', fontSize: '0.75rem', background: 'rgba(255,255,255,0.1)' }}
+                            >
+                              Update
+                            </button>
                           </td>
                         </tr>
                       ))}
@@ -171,6 +202,38 @@ export default function PayrollClient({ staff }: { staff: any[] }) {
         </div>
         
       </div>
+
+      {/* Update Status Modal */}
+      {updatingSalary && (
+        <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(0,0,0,0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000 }}>
+          <div className="glass-panel" style={{ padding: '2rem', width: '400px', maxWidth: '90%' }}>
+            <h3 className="section-title">Update Payroll Status</h3>
+            <p style={{ fontSize: '0.875rem', color: 'var(--text-muted)', marginBottom: '1rem' }}>
+              Updating {updatingSalary.currency} {updatingSalary.amount}
+            </p>
+            <form onSubmit={handleUpdateStatus}>
+              <div className="input-group">
+                <label className="input-label">Status</label>
+                <select className="input-field" value={newStatus} onChange={e => setNewStatus(e.target.value)} required>
+                  <option value="pending">Pending</option>
+                  <option value="in_review">In Review</option>
+                  <option value="paid">Paid</option>
+                  <option value="suspended">Suspended</option>
+                </select>
+              </div>
+              <div className="input-group" style={{ marginBottom: '2rem' }}>
+                <label className="input-label">Admin Note (Reason for suspend, etc.)</label>
+                <textarea className="input-field" rows={3} value={adminNote} onChange={e => setAdminNote(e.target.value)}></textarea>
+              </div>
+              <div style={{ display: 'flex', gap: '1rem' }}>
+                <button type="button" className="btn" onClick={() => setUpdatingSalary(null)} style={{ flex: 1, background: 'rgba(255,255,255,0.1)' }}>Cancel</button>
+                <button type="submit" className="btn btn-primary" style={{ flex: 1 }}>Save Changes</button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
+

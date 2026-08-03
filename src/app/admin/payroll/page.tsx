@@ -14,7 +14,10 @@ export default async function AdminPayrollPage() {
   const staff = await prisma.user.findMany({
     where: { role: { isAdmin: false } },
     include: {
-      salaries: { orderBy: { effectiveDate: 'desc' } }
+      salaries: { 
+        orderBy: { effectiveDate: 'desc' },
+        include: { statusHistory: { include: { updatedBy: { select: { fullName: true } } }, orderBy: { createdAt: 'desc' } } }
+      }
     },
     orderBy: { fullName: 'asc' }
   });

@@ -19,6 +19,7 @@ export default function Sidebar({ role }: { role: 'admin' | 'staff' }) {
 
   const adminLinks = [
     { name: 'Dashboard', href: '/admin/dashboard', icon: LayoutDashboard },
+    { name: 'Projects', href: '/admin/projects', icon: Briefcase },
     { name: 'Staff Management', href: '/admin/staff', icon: Users },
     { name: 'Tasks', href: '/admin/tasks', icon: CheckSquare },
     { name: 'Contracts', href: '/admin/contracts', icon: FileText },
