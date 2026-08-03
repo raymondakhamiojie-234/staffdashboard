@@ -18,8 +18,8 @@ export async function GET(req: Request) {
     const messages = await prisma.message.findMany({
       where: {
         OR: [
-          { senderId: (Number(payload.userId)), receiverId: Number(contactId) },
-          { senderId: Number(contactId), receiverId: (Number(payload.userId)) }
+          { senderId: (Number(payload.id)), receiverId: Number(contactId) },
+          { senderId: Number(contactId), receiverId: (Number(payload.id)) }
         ]
       },
       orderBy: { createdAt: 'asc' },
@@ -31,7 +31,7 @@ export async function GET(req: Request) {
 
     // Mark received messages as read
     await prisma.message.updateMany({
-      where: { senderId: Number(contactId), receiverId: (Number(payload.userId)), isRead: false },
+      where: { senderId: Number(contactId), receiverId: (Number(payload.id)), isRead: false },
       data: { isRead: true }
     });
 
@@ -53,14 +53,14 @@ export async function POST(req: Request) {
 
     const message = await prisma.message.create({
       data: {
-        senderId: (Number(payload.userId)),
+        senderId: (Number(payload.id)),
         receiverId: Number(receiverId),
         content
       }
     });
 
     // Trigger a notification for the receiver
-    const sender = await prisma.user.findUnique({ where: { id: (Number(payload.userId)) } });
+    const sender = await prisma.user.findUnique({ where: { id: (Number(payload.id)) } });
     await prisma.notification.create({
       data: {
         userId: Number(receiverId),
