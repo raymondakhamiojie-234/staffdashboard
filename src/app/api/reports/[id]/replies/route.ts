@@ -42,15 +42,22 @@ export async function POST(req: Request, props: { params: Promise<{ id: string }
     });
 
     // Notify the other party
-    const notifyUserId = payload.isAdmin ? report.submittedById : report.task.assignedById;
-    
-    await prisma.notification.create({
-      data: {
-        userId: notifyUserId,
-        type: 'message',
-        message: `${payload.isAdmin ? 'Admin' : 'Staff'} replied to your report on task: ${report.task.title}`
-      }
-    });
+    let notifyUserId: number | null = null;
+    if (payload.isAdmin) {
+      notifyUserId = report.submittedById;
+    } else if (report.task) {
+      notifyUserId = report.task.assignedById;
+    }
+
+    if (notifyUserId) {
+      await prisma.notification.create({
+        data: {
+          userId: notifyUserId,
+          type: 'message',
+          message: `${payload.isAdmin ? 'Admin' : 'Staff'} replied to your report${report.task ? ` on task: ${report.task.title}` : ''}`
+        }
+      });
+    }
 
     await logActivity('Posted Report Reply', `Replied to report ID ${reportId}`, Number(payload.id));
 
