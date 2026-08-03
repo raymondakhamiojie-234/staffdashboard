@@ -42,17 +42,9 @@ export default function LoginPage() {
   };
 
   return (
-    <div style={{ display: 'flex', minHeight: '100vh' }}>
+    <div className="auth-layout">
       {/* Left side branding */}
-      <div style={{ 
-        flex: 1, 
-        background: 'linear-gradient(135deg, var(--primary) 0%, var(--accent) 100%)',
-        display: 'flex', 
-        flexDirection: 'column', 
-        justifyContent: 'center', 
-        padding: '4rem',
-        color: 'white'
-      }}>
+      <div className="auth-banner">
         <h1 style={{ fontSize: '3.5rem', fontWeight: 800, marginBottom: '1rem', letterSpacing: '-1px' }}>
           Falcus Media
         </h1>
@@ -62,7 +54,7 @@ export default function LoginPage() {
       </div>
 
       {/* Right side login form */}
-      <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '2rem' }}>
+      <div className="auth-form-container">
         <div className="glass-panel" style={{ width: '100%', maxWidth: '440px', padding: '3rem 2.5rem' }}>
           <h2 style={{ fontSize: '1.75rem', fontWeight: 700, marginBottom: '0.5rem' }}>Welcome back</h2>
           <p style={{ color: 'var(--text-muted)', marginBottom: '2.5rem' }}>Sign in to your account</p>

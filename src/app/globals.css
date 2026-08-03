@@ -208,6 +208,29 @@ a {
   display: flex;
 }
 
+.auth-layout {
+  display: flex;
+  min-height: 100vh;
+}
+
+.auth-banner {
+  flex: 1;
+  background: linear-gradient(135deg, var(--primary) 0%, var(--accent) 100%);
+  display: flex; 
+  flex-direction: column; 
+  justify-content: center; 
+  padding: 4rem;
+  color: white;
+}
+
+.auth-form-container {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 2rem;
+}
+
 /* Typography */
 .page-title {
   font-size: 1.875rem;
@@ -271,5 +294,15 @@ a {
   
   .hide-on-mobile {
     display: none !important;
+  }
+
+  .auth-layout {
+    flex-direction: column;
+  }
+  .auth-banner {
+    padding: 2rem;
+    flex: none;
+    text-align: center;
+    align-items: center;
   }
 }

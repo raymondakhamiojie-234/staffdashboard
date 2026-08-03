@@ -49,16 +49,8 @@ export default function RegisterPage() {
   };
 
   return (
-    <div style={{ display: 'flex', minHeight: '100vh' }}>
-      <div style={{ 
-        flex: 1, 
-        background: 'linear-gradient(135deg, var(--primary) 0%, var(--accent) 100%)',
-        display: 'flex', 
-        flexDirection: 'column', 
-        justifyContent: 'center', 
-        padding: '4rem',
-        color: 'white'
-      }}>
+    <div className="auth-layout">
+      <div className="auth-banner">
         <h1 style={{ fontSize: '3.5rem', fontWeight: 800, marginBottom: '1rem', letterSpacing: '-1px' }}>
           Join Falcus Media
         </h1>
@@ -67,7 +59,7 @@ export default function RegisterPage() {
         </p>
       </div>
 
-      <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '2rem' }}>
+      <div className="auth-form-container">
         <div className="glass-panel" style={{ width: '100%', maxWidth: '500px', padding: '3rem 2.5rem' }}>
           <h2 style={{ fontSize: '1.75rem', fontWeight: 700, marginBottom: '0.5rem' }}>Create Account</h2>
           <p style={{ color: 'var(--text-muted)', marginBottom: '2.5rem' }}>Fill in your details to register</p>
@@ -125,7 +117,7 @@ export default function RegisterPage() {
               />
             </div>
 
-            <div style={{ display: 'flex', gap: '1rem' }}>
+            <div className="flex-wrap-mobile" style={{ display: 'flex', gap: '1rem' }}>
               <div className="input-group" style={{ flex: 1 }}>
                 <label className="input-label">Phone Number</label>
                 <input 
