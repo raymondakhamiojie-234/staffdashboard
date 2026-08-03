@@ -22,8 +22,8 @@ export default function AdminReportsClient({ initialReports }: { initialReports:
         Review daily, weekly, and monthly activity reports submitted by staff members.
       </p>
 
-      <div style={{ display: 'flex', gap: '1rem', marginBottom: '2rem' }}>
-        <div className="input-group" style={{ flex: 1, marginBottom: 0 }}>
+      <div className="flex-wrap-mobile" style={{ display: 'flex', gap: '1rem', marginBottom: '2rem' }}>
+        <div className="input-group" style={{ flex: 1, minWidth: '200px', marginBottom: 0 }}>
           <div style={{ position: 'relative' }}>
             <Search size={18} style={{ position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)', color: 'var(--text-muted)' }} />
             <input 
@@ -36,7 +36,7 @@ export default function AdminReportsClient({ initialReports }: { initialReports:
             />
           </div>
         </div>
-        <div className="input-group" style={{ width: '200px', marginBottom: 0 }}>
+        <div className="input-group" style={{ width: '100%', maxWidth: '200px', marginBottom: 0 }}>
           <select className="input-field" value={filterType} onChange={e => setFilterType(e.target.value)}>
             <option value="all">All Types</option>
             <option value="daily">Daily</option>
@@ -55,7 +55,7 @@ export default function AdminReportsClient({ initialReports }: { initialReports:
         ) : (
           filteredReports.map((report: any) => (
             <div key={report.id} className="glass-card" style={{ padding: '1.5rem' }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '1rem' }}>
+              <div className="flex-wrap-mobile" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '1rem', gap: '1rem' }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
                   <div style={{ 
                     width: '40px', height: '40px', borderRadius: '50%', background: 'rgba(255,255,255,0.1)',

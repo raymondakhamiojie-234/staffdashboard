@@ -46,6 +46,7 @@ export default function Sidebar({ role }: { role: 'admin' | 'staff' }) {
   const links = role === 'admin' ? adminLinks : staffLinks;
 
   return (
+    <>
     <aside className="sidebar">
       <div style={{ display: 'flex', alignItems: 'center', marginBottom: '2rem' }}>
         <div style={{ 
@@ -98,5 +99,13 @@ export default function Sidebar({ role }: { role: 'admin' | 'staff' }) {
         </Link>
       </div>
     </aside>
+    <div 
+      className="sidebar-overlay" 
+      onClick={() => {
+        document.querySelector('.sidebar')?.classList.remove('open');
+        document.querySelector('.sidebar-overlay')?.classList.remove('open');
+      }}
+    />
+    </>
   );
 }

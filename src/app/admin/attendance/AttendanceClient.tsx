@@ -59,8 +59,8 @@ export default function AttendanceClient() {
         View staff check-ins and process salary penalties for missed attendance.
       </p>
 
-      <div style={{ display: 'flex', gap: '1rem', marginBottom: '2rem', alignItems: 'flex-end' }}>
-        <div className="input-group" style={{ marginBottom: 0, flex: 1, maxWidth: '250px' }}>
+      <div className="flex-wrap-mobile" style={{ display: 'flex', gap: '1rem', marginBottom: '2rem', alignItems: 'flex-end' }}>
+        <div className="input-group" style={{ marginBottom: 0, flex: 1, minWidth: '200px' }}>
           <label className="input-label">Select Date</label>
           <div style={{ position: 'relative' }}>
             <Calendar size={18} style={{ position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)', color: 'var(--text-muted)' }} />
@@ -78,7 +78,7 @@ export default function AttendanceClient() {
           onClick={handleEvaluate} 
           disabled={evaluating || loading}
           className="btn btn-primary" 
-          style={{ background: 'var(--warning)', color: '#000', display: 'flex', alignItems: 'center', gap: '8px' }}
+          style={{ background: 'var(--warning)', color: '#000', display: 'flex', alignItems: 'center', gap: '8px', width: '100%', maxWidth: 'max-content' }}
         >
           <AlertCircle size={18} />
           {evaluating ? 'Processing...' : 'Run Penalty Check'}
@@ -96,7 +96,7 @@ export default function AttendanceClient() {
         </div>
       </div>
 
-      <div className="glass-panel" style={{ overflow: 'hidden' }}>
+      <div className="glass-panel table-responsive">
         <table style={{ width: '100%', borderCollapse: 'collapse' }}>
           <thead>
             <tr style={{ background: 'rgba(255,255,255,0.05)', textAlign: 'left' }}>

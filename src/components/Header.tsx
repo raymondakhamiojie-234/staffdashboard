@@ -46,11 +46,14 @@ export default function Header({ userName, role }: { userName: string, role: str
       <div style={{ flex: 1, display: 'flex', alignItems: 'center' }}>
         <button 
           className="menu-toggle"
-          onClick={() => document.querySelector('.sidebar')?.classList.toggle('open')}
+          onClick={() => {
+            document.querySelector('.sidebar')?.classList.toggle('open');
+            document.querySelector('.sidebar-overlay')?.classList.toggle('open');
+          }}
         >
           <Menu size={24} />
         </button>
-        <div style={{ 
+        <div className="hide-on-mobile" style={{ 
           position: 'relative', width: '300px', 
           display: 'flex', alignItems: 'center' 
         }}>
@@ -128,7 +131,7 @@ export default function Header({ userName, role }: { userName: string, role: str
         </div>
 
         <div style={{ display: 'flex', alignItems: 'center', gap: '10px', borderLeft: '1px solid var(--surface-border)', paddingLeft: '20px' }}>
-          <div style={{ textAlign: 'right' }}>
+          <div style={{ textAlign: 'right' }} className="hide-on-mobile">
             <div style={{ fontSize: '0.875rem', fontWeight: '600' }}>{userName}</div>
             <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>{role}</div>
           </div>

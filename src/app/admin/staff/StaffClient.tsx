@@ -83,7 +83,7 @@ export default function StaffClient({ initialUsers, roles: initialRoles }: { ini
 
   return (
     <div>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '2rem' }}>
+      <div className="flex-wrap-mobile" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: '1rem', marginBottom: '2rem' }}>
         <div>
           <h1 className="page-title">Staff Management</h1>
           <p style={{ color: 'var(--text-muted)' }}>Manage staff accounts, assign positions, set salaries, and handle access control.</p>

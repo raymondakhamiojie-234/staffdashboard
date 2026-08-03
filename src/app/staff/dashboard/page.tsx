@@ -37,7 +37,7 @@ export default async function StaffDashboard() {
 
   return (
     <div>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2rem' }}>
+      <div className="flex-wrap-mobile" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '1rem', marginBottom: '2rem' }}>
         <h1 className="page-title" style={{ marginBottom: 0 }}>Welcome back, {user.fullName.split(' ')[0]}</h1>
         <AttendanceButton hasMarkedToday={!!hasMarkedToday} />
       </div>
