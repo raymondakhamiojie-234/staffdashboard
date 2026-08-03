@@ -12,7 +12,9 @@ export async function generateAndUploadInvoice({
   amount,
   currency,
   effectiveDate,
-  status
+  status,
+  deductionsTotal = 0,
+  deductionsList = []
 }: {
   salaryId: number;
   staffName: string;
@@ -21,6 +23,8 @@ export async function generateAndUploadInvoice({
   currency: string;
   effectiveDate: Date;
   status: string;
+  deductionsTotal?: number;
+  deductionsList?: { reason: string; amount: number }[];
 }) {
   const doc = new jsPDF();
 
@@ -54,9 +58,10 @@ export async function generateAndUploadInvoice({
     body: [
       ['Base Salary', `${currency} ${amount.toLocaleString()}`],
       ['Bonuses', `${currency} 0.00`],
-      ['Deductions', `${currency} 0.00`]
+      ...deductionsList.map(d => [`Deduction: ${d.reason}`, `-${currency} ${d.amount.toLocaleString(undefined, {minimumFractionDigits: 2})}`]),
+      ...(deductionsList.length === 0 ? [['Deductions', `${currency} 0.00`]] : [])
     ],
-    foot: [['Total', `${currency} ${amount.toLocaleString()}`]],
+    foot: [['Net Total', `${currency} ${(amount - deductionsTotal).toLocaleString(undefined, {minimumFractionDigits: 2})}`]],
     theme: 'grid',
     headStyles: { fillColor: [41, 128, 185] },
     footStyles: { fillColor: [41, 128, 185] }

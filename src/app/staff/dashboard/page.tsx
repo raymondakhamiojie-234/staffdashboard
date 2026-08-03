@@ -2,6 +2,7 @@ import prisma from '@/lib/prisma';
 import { cookies } from 'next/headers';
 import { verifyToken } from '@/lib/jwt';
 import { redirect } from 'next/navigation';
+import AttendanceButton from './AttendanceButton';
 
 export default async function StaffDashboard() {
   const token = (await cookies()).get('auth_token')?.value;
@@ -29,9 +30,17 @@ export default async function StaffDashboard() {
   const pendingTasks = user.tasksReceived.filter((t: any) => t.status === 'pending' || t.status === 'in_progress');
   const latestSalary = user.salaries[0];
 
+  const today = new Date().toISOString().split('T')[0];
+  const hasMarkedToday = await prisma.attendance.findUnique({
+    where: { userId_date: { userId: user.id, date: today } }
+  });
+
   return (
     <div>
-      <h1 className="page-title">Welcome back, {user.fullName.split(' ')[0]}</h1>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2rem' }}>
+        <h1 className="page-title" style={{ marginBottom: 0 }}>Welcome back, {user.fullName.split(' ')[0]}</h1>
+        <AttendanceButton hasMarkedToday={!!hasMarkedToday} />
+      </div>
       
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '2rem', marginBottom: '2rem' }}>
         

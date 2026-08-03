@@ -12,7 +12,8 @@ import {
   TrendingUp,
   Settings,
   Briefcase,
-  Activity
+  Activity,
+  CalendarCheck
 } from 'lucide-react';
 
 export default function Sidebar({ role }: { role: 'admin' | 'staff' }) {
@@ -22,6 +23,7 @@ export default function Sidebar({ role }: { role: 'admin' | 'staff' }) {
     { name: 'Dashboard', href: '/admin/dashboard', icon: LayoutDashboard },
     { name: 'Projects', href: '/admin/projects', icon: Briefcase },
     { name: 'Staff Management', href: '/admin/staff', icon: Users },
+    { name: 'Attendance', href: '/admin/attendance', icon: CalendarCheck },
     { name: 'Tasks', href: '/admin/tasks', icon: CheckSquare },
     { name: 'Contracts', href: '/admin/contracts', icon: FileText },
     { name: 'Payroll & Salaries', href: '/admin/payroll', icon: CreditCard },

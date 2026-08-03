@@ -69,6 +69,10 @@ model User {
   invoices             Invoice[]
   performanceScores    PerformanceScore[]
   meetingsCreated      Meeting[] @relation("MeetingsCreated")
+  
+  // Attendance & Deductions
+  attendances          Attendance[]
+  salaryDeductions     SalaryDeduction[]
 }
 
 model Task {
@@ -361,6 +365,28 @@ model Meeting {
   createdById Int
   createdBy   User     @relation("MeetingsCreated", fields: [createdById], references: [id])
   status      String   @default("scheduled") // scheduled, completed, cancelled
+  createdAt   DateTime @default(now())
+}
+
+model Attendance {
+  id          Int      @id @default(autoincrement())
+  userId      Int
+  user        User     @relation(fields: [userId], references: [id])
+  date        String   // Stored as YYYY-MM-DD
+  checkInTime DateTime @default(now())
+  status      String   @default("present")
+  createdAt   DateTime @default(now())
+
+  @@unique([userId, date])
+}
+
+model SalaryDeduction {
+  id          Int      @id @default(autoincrement())
+  userId      Int
+  user        User     @relation(fields: [userId], references: [id])
+  amount      Float
+  reason      String
+  date        String   // YYYY-MM to easily group deductions by month
   createdAt   DateTime @default(now())
 }
 

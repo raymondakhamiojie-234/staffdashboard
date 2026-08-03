@@ -32,6 +32,18 @@ export async function POST(req: Request, props: { params: Promise<{ id: string }
       return NextResponse.json({ error: 'Invoice already generated for this salary' }, { status: 400 });
     }
 
+    // Fetch deductions for this month
+    const currentYYYYMM = new Date().toISOString().substring(0, 7);
+    const deductions = await prisma.salaryDeduction.findMany({
+      where: {
+        userId: salary.userId,
+        date: currentYYYYMM
+      }
+    });
+
+    const deductionsTotal = deductions.reduce((sum, d) => sum + d.amount, 0);
+    const deductionsList = deductions.map(d => ({ reason: d.reason, amount: d.amount }));
+
     // Generate PDF and Upload
     const fileUrl = await generateAndUploadInvoice({
       salaryId: salary.id,
@@ -40,7 +52,9 @@ export async function POST(req: Request, props: { params: Promise<{ id: string }
       amount: salary.amount,
       currency: salary.currency,
       effectiveDate: salary.effectiveDate,
-      status: salary.status
+      status: salary.status,
+      deductionsTotal,
+      deductionsList
     });
 
     // Save to Database
