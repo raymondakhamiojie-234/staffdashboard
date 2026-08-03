@@ -11,7 +11,8 @@ import {
   Bell, 
   TrendingUp,
   Settings,
-  Briefcase
+  Briefcase,
+  Activity
 } from 'lucide-react';
 
 export default function Sidebar({ role }: { role: 'admin' | 'staff' }) {
@@ -25,6 +26,7 @@ export default function Sidebar({ role }: { role: 'admin' | 'staff' }) {
     { name: 'Contracts', href: '/admin/contracts', icon: FileText },
     { name: 'Payroll & Salaries', href: '/admin/payroll', icon: CreditCard },
     { name: 'Communications', href: '/admin/chat', icon: MessageSquare },
+    { name: 'Activity Reports', href: '/admin/reports', icon: Activity },
     { name: 'Updates', href: '/admin/updates', icon: Bell },
     { name: 'Roadmap', href: '/admin/roadmap', icon: TrendingUp },
   ];
@@ -34,6 +36,7 @@ export default function Sidebar({ role }: { role: 'admin' | 'staff' }) {
     { name: 'Tasks & Reports', href: '/staff/tasks', icon: CheckSquare },
     { name: 'My Contract', href: '/staff/contract', icon: FileText },
     { name: 'Profile & CV', href: '/staff/profile', icon: Briefcase },
+    { name: 'Submit Reports', href: '/staff/reports', icon: Activity },
     { name: 'Salary', href: '/staff/salary', icon: CreditCard },
     { name: 'Communications', href: '/staff/chat', icon: MessageSquare },
   ];

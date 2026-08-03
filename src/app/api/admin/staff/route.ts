@@ -32,7 +32,7 @@ export async function PUT(req: Request) {
     const payload = await verifyToken(token);
     if (!payload || !payload.isAdmin) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
 
-    const { userId, roleId, isActive } = await req.json();
+    const { userId, roleId, isActive, salaryAmount } = await req.json();
 
     if (!userId) return NextResponse.json({ error: 'User ID required' }, { status: 400 });
 
@@ -40,10 +40,32 @@ export async function PUT(req: Request) {
     if (roleId !== undefined) dataToUpdate.roleId = roleId;
     if (isActive !== undefined) dataToUpdate.isActive = isActive;
 
-    const updatedUser = await prisma.user.update({
+    await prisma.user.update({
       where: { id: userId },
-      data: dataToUpdate,
-      include: { role: true }
+      data: dataToUpdate
+    });
+
+    if (salaryAmount !== undefined && salaryAmount !== '') {
+      const latestSalary = await prisma.salary.findFirst({
+        where: { userId },
+        orderBy: { effectiveDate: 'desc' }
+      });
+      
+      if (!latestSalary || latestSalary.amount !== Number(salaryAmount)) {
+        await prisma.salary.create({
+          data: {
+            userId,
+            amount: Number(salaryAmount),
+            effectiveDate: new Date(),
+            status: 'pending'
+          }
+        });
+      }
+    }
+
+    const updatedUser = await prisma.user.findUnique({
+      where: { id: userId },
+      include: { role: true, salaries: { orderBy: { effectiveDate: 'desc' }, take: 1 } }
     });
 
     return NextResponse.json({ message: 'User updated', user: updatedUser });

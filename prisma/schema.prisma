@@ -117,8 +117,8 @@ model TaskFile {
 
 model Report {
   id            Int      @id @default(autoincrement())
-  taskId        Int
-  task          Task     @relation(fields: [taskId], references: [id])
+  taskId        Int?
+  task          Task?    @relation(fields: [taskId], references: [id])
   submittedById Int
   submittedBy   User     @relation(fields: [submittedById], references: [id])
   type          String   // daily, weekly, monthly
