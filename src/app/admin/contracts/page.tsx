@@ -19,5 +19,18 @@ export default async function AdminContractsPage() {
     orderBy: { createdAt: 'desc' }
   });
 
-  return <ContractsAdminClient initialContracts={contracts} />;
+  const templates = await prisma.contractTemplate.findMany({
+    orderBy: { createdAt: 'desc' }
+  });
+
+  const uncontractedStaff = await prisma.user.findMany({
+    where: { 
+      role: { isAdmin: false },
+      contractStatus: 'pending',
+      contracts: { none: { status: { in: ['pending', 'signed'] } } }
+    },
+    select: { id: true, fullName: true, email: true }
+  });
+
+  return <ContractsAdminClient initialContracts={contracts} templates={templates} uncontractedStaff={uncontractedStaff} />;
 }
