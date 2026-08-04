@@ -20,14 +20,29 @@ export async function DELETE(req: Request, { params }: { params: Promise<{ id: s
     if (!user) return NextResponse.json({ error: 'User not found' }, { status: 404 });
     if (user.role.isAdmin) return NextResponse.json({ error: 'Cannot delete an admin' }, { status: 400 });
 
-    await prisma.user.update({
-      where: { id: userId },
-      data: { isDeleted: true, deletedAt: new Date() }
-    });
+    const url = new URL(req.url);
+    const isPermanent = url.searchParams.get('permanent') === 'true';
 
-    await logActivity('Deleted Staff Member', JSON.stringify({ userId, name: user.fullName }), payload.id as number);
-
-    return NextResponse.json({ message: 'User deleted successfully' });
+    if (isPermanent) {
+      await prisma.user.update({
+        where: { id: userId },
+        data: { 
+          isDeleted: true, 
+          deletedAt: new Date(),
+          email: `deleted_${Date.now()}_${user.email}`,
+          isActive: false
+        }
+      });
+      await logActivity('Permanently Deleted Staff Member', JSON.stringify({ userId, name: user.fullName }), payload.id as number);
+      return NextResponse.json({ message: 'User permanently deleted and anonymized' });
+    } else {
+      await prisma.user.update({
+        where: { id: userId },
+        data: { isDeleted: true, deletedAt: new Date() }
+      });
+      await logActivity('Deleted Staff Member to Recycle Bin', JSON.stringify({ userId, name: user.fullName }), payload.id as number);
+      return NextResponse.json({ message: 'User deleted successfully' });
+    }
   } catch (error: any) {
     console.error(error);
     return NextResponse.json({ error: error.message }, { status: 500 });

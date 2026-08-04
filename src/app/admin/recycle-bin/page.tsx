@@ -12,7 +12,10 @@ export default async function RecycleBinPage() {
   if (!payload || !payload.isAdmin) redirect('/login');
 
   const deletedUsers = await prisma.user.findMany({
-    where: { isDeleted: true },
+    where: { 
+      isDeleted: true,
+      email: { not: { startsWith: 'deleted_' } }
+    },
     include: { role: true },
     orderBy: { deletedAt: 'desc' }
   });

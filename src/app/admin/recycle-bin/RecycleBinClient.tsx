@@ -22,6 +22,20 @@ export default function RecycleBinClient({ initialUsers }: { initialUsers: any[]
     }
   };
 
+  const handleDeletePermanently = async (userId: number) => {
+    if (!confirm('Are you ABSOLUTELY sure? This will anonymize their account, removing them from the recycle bin forever and freeing up their email address.')) return;
+    
+    try {
+      const res = await fetch(`/api/admin/staff/${userId}?permanent=true`, { method: 'DELETE' });
+      if (!res.ok) throw new Error('Failed to permanently delete staff member');
+      
+      setUsers(users.filter(u => u.id !== userId));
+      router.refresh();
+    } catch (err: any) {
+      alert(err.message);
+    }
+  };
+
   return (
     <div>
       <div className="flex-wrap-mobile" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: '1rem', marginBottom: '2rem' }}>
@@ -66,13 +80,23 @@ export default function RecycleBinClient({ initialUsers }: { initialUsers: any[]
                     {user.deletedAt ? new Date(user.deletedAt).toLocaleDateString() : 'Unknown'}
                   </td>
                   <td style={{ padding: '1rem', textAlign: 'right' }}>
-                    <button 
-                      onClick={() => handleRestore(user.id)}
-                      className="btn" 
-                      style={{ padding: '6px 12px', fontSize: '0.875rem', background: 'rgba(16, 185, 129, 0.1)', color: 'var(--secondary)', border: '1px solid rgba(16,185,129,0.2)' }}
-                    >
-                      <RotateCcw size={16} style={{ display: 'inline', marginRight: '4px', verticalAlign: 'text-bottom' }} /> Restore
-                    </button>
+                    <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '8px' }}>
+                      <button 
+                        onClick={() => handleRestore(user.id)}
+                        className="btn" 
+                        style={{ padding: '6px 12px', fontSize: '0.875rem', background: 'rgba(16, 185, 129, 0.1)', color: 'var(--secondary)', border: '1px solid rgba(16,185,129,0.2)' }}
+                      >
+                        <RotateCcw size={16} style={{ display: 'inline', marginRight: '4px', verticalAlign: 'text-bottom' }} /> Restore
+                      </button>
+                      <button 
+                        onClick={() => handleDeletePermanently(user.id)}
+                        className="btn" 
+                        style={{ padding: '6px', background: 'rgba(239, 68, 68, 0.1)', color: 'var(--danger)', border: 'none' }}
+                        title="Delete Permanently"
+                      >
+                        <Trash2 size={16} />
+                      </button>
+                    </div>
                   </td>
                 </tr>
               ))}
