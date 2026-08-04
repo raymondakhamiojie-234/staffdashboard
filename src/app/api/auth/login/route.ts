@@ -20,9 +20,9 @@ export async function POST(req: Request) {
       include: { role: true },
     });
 
-    if (!user) {
+    if (!user || user.isDeleted) {
       return NextResponse.json(
-        { error: 'Invalid credentials.' },
+        { error: 'Invalid credentials or account deleted.' },
         { status: 401 }
       );
     }
