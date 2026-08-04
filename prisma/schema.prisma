@@ -39,6 +39,9 @@ model User {
   contractStatus   String   @default("pending") // pending, signed
   policyStatus     String   @default("pending") // pending, acknowledged
   
+  isDeleted        Boolean  @default(false)
+  deletedAt        DateTime?
+  
   createdAt        DateTime @default(now())
   updatedAt        DateTime @updatedAt
 

@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { Plus } from 'lucide-react';
+import { Plus, Trash2 } from 'lucide-react';
 
 export default function StaffClient({ initialUsers, roles: initialRoles }: { initialUsers: any[], roles: any[] }) {
   const router = useRouter();
@@ -50,6 +50,20 @@ export default function StaffClient({ initialUsers, roles: initialRoles }: { ini
       alert('Error updating user');
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleDelete = async (userId: number) => {
+    if (!confirm('Are you sure you want to delete this staff member? They will be moved to the Recycle Bin.')) return;
+    
+    try {
+      const res = await fetch(`/api/admin/staff/${userId}`, { method: 'DELETE' });
+      if (!res.ok) throw new Error('Failed to delete staff member');
+      
+      setUsers(users.filter(u => u.id !== userId));
+      router.refresh();
+    } catch (err: any) {
+      alert(err.message);
     }
   };
 
@@ -136,13 +150,23 @@ export default function StaffClient({ initialUsers, roles: initialRoles }: { ini
                     </div>
                   </td>
                   <td style={{ padding: '1rem', textAlign: 'right' }}>
-                    <button 
-                      onClick={() => handleEdit(user)}
-                      className="btn" 
-                      style={{ padding: '6px 12px', fontSize: '0.875rem', background: 'rgba(255,255,255,0.1)' }}
-                    >
-                      Edit
-                    </button>
+                    <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '8px' }}>
+                      <button 
+                        onClick={() => handleEdit(user)}
+                        className="btn" 
+                        style={{ padding: '6px 12px', fontSize: '0.875rem', background: 'rgba(255,255,255,0.1)' }}
+                      >
+                        Edit
+                      </button>
+                      <button 
+                        onClick={() => handleDelete(user.id)}
+                        className="btn" 
+                        style={{ padding: '6px', background: 'rgba(239, 68, 68, 0.1)', color: 'var(--danger)', border: 'none' }}
+                        title="Delete Staff"
+                      >
+                        <Trash2 size={16} />
+                      </button>
+                    </div>
                   </td>
                 </tr>
               ))}

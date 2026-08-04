@@ -14,7 +14,8 @@ import {
   Briefcase,
   Activity,
   CalendarCheck,
-  BookOpen
+  BookOpen,
+  Trash2
 } from 'lucide-react';
 
 export default function Sidebar({ role }: { role: 'admin' | 'staff' }) {
@@ -33,6 +34,7 @@ export default function Sidebar({ role }: { role: 'admin' | 'staff' }) {
     { name: 'Updates', href: '/admin/updates', icon: Bell },
     { name: 'Company Policy', href: '/admin/policy', icon: BookOpen },
     { name: 'Roadmap', href: '/admin/roadmap', icon: TrendingUp },
+    { name: 'Recycle Bin', href: '/admin/recycle-bin', icon: Trash2 },
   ];
 
   const staffLinks = [

@@ -12,6 +12,7 @@ export default async function AdminStaffPage() {
   if (!payload || !payload.isAdmin) redirect('/login');
 
   const users = await prisma.user.findMany({
+    where: { isDeleted: false },
     include: { 
       role: true,
       salaries: { orderBy: { effectiveDate: 'desc' }, take: 1 } 
