@@ -13,7 +13,8 @@ import {
   Settings,
   Briefcase,
   Activity,
-  CalendarCheck
+  CalendarCheck,
+  BookOpen
 } from 'lucide-react';
 
 export default function Sidebar({ role }: { role: 'admin' | 'staff' }) {
@@ -30,6 +31,7 @@ export default function Sidebar({ role }: { role: 'admin' | 'staff' }) {
     { name: 'Communications', href: '/admin/chat', icon: MessageSquare },
     { name: 'Activity Reports', href: '/admin/reports', icon: Activity },
     { name: 'Updates', href: '/admin/updates', icon: Bell },
+    { name: 'Company Policy', href: '/admin/policy', icon: BookOpen },
     { name: 'Roadmap', href: '/admin/roadmap', icon: TrendingUp },
   ];
 
