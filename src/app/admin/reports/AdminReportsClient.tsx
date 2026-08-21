@@ -89,9 +89,29 @@ export default function AdminReportsClient({ initialReports }: { initialReports:
               )}
 
               <div style={{ background: 'rgba(0,0,0,0.2)', padding: '1.5rem', borderRadius: '8px', border: '1px solid rgba(255,255,255,0.05)' }}>
-                <p style={{ whiteSpace: 'pre-wrap', lineHeight: 1.6, color: 'var(--text-light)' }}>
+                <p style={{ whiteSpace: 'pre-wrap', lineHeight: 1.6, color: 'var(--text-light)', marginBottom: report.fileUrl ? '1rem' : '0' }}>
                   {report.content}
                 </p>
+
+                {report.fileUrl && (
+                  <div style={{ padding: '12px', background: 'rgba(255,255,255,0.05)', borderRadius: '6px', border: '1px solid rgba(255,255,255,0.1)' }}>
+                    <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)', marginBottom: '6px', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Attached File</div>
+                    <a 
+                      href={report.fileUrl} 
+                      target="_blank" 
+                      rel="noopener noreferrer"
+                      className="btn"
+                      style={{ 
+                        background: 'rgba(59, 130, 246, 0.1)', color: 'var(--primary)', 
+                        border: '1px solid rgba(59, 130, 246, 0.2)', padding: '8px 16px', 
+                        display: 'inline-flex', alignItems: 'center', gap: '8px', fontSize: '0.875rem' 
+                      }}
+                    >
+                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"></path><polyline points="14 2 14 8 20 8"></polyline></svg>
+                      {report.fileName || 'View Attachment'}
+                    </a>
+                  </div>
+                )}
               </div>
             </div>
           ))

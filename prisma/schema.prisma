@@ -130,6 +130,8 @@ model Report {
   submittedBy   User     @relation(fields: [submittedById], references: [id])
   type          String   // daily, weekly, monthly
   content       String
+  fileUrl       String?
+  fileName      String?
   submittedAt   DateTime @default(now())
 
   replies       ReportReply[]

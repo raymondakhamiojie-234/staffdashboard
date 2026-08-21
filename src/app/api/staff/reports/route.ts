@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import { cookies } from 'next/headers';
 import prisma from '@/lib/prisma';
 import { verifyToken } from '@/lib/jwt';
+import { supabase } from '@/lib/supabase';
 
 export async function POST(req: Request) {
   try {
@@ -11,33 +12,70 @@ export async function POST(req: Request) {
     const payload = await verifyToken(token);
     if (!payload || !payload.id) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
 
-    const { taskId, type, content } = await req.json();
+    const formData = await req.formData();
+    const type = formData.get('type') as string;
+    const content = formData.get('content') as string;
+    const taskIdStr = formData.get('taskId') as string;
+    const file = formData.get('file') as File | null;
 
     if (!type || !content) {
       return NextResponse.json({ error: 'Missing required fields' }, { status: 400 });
     }
 
+    const taskId = taskIdStr && taskIdStr !== 'null' ? Number(taskIdStr) : null;
+
     if (taskId) {
       // Verify task belongs to user
-      const task = await prisma.task.findUnique({ where: { id: Number(taskId) } });
+      const task = await prisma.task.findUnique({ where: { id: taskId } });
       if (!task || task.assignedToId !== payload.id) {
         return NextResponse.json({ error: 'Task not found or unauthorized' }, { status: 403 });
       }
       
       if (task.status === 'pending') {
         await prisma.task.update({
-          where: { id: Number(taskId) },
+          where: { id: taskId },
           data: { status: 'in_progress' }
         });
       }
     }
 
+    let fileUrl = null;
+    let fileName = null;
+
+    if (file && file.size > 0) {
+      if (file.size > 5 * 1024 * 1024) {
+        return NextResponse.json({ error: 'File size must be under 5MB' }, { status: 400 });
+      }
+      
+      const fileBuffer = await file.arrayBuffer();
+      const uniqueFileName = `${Date.now()}_${file.name.replace(/\s+/g, '_')}`;
+      const filePath = `reports/${payload.id}/${uniqueFileName}`;
+
+      const { error: uploadError } = await supabase.storage
+        .from('uploads')
+        .upload(filePath, fileBuffer, {
+          contentType: file.type,
+          upsert: false
+        });
+
+      if (uploadError) {
+        console.error(uploadError);
+        return NextResponse.json({ error: 'Failed to upload file' }, { status: 500 });
+      }
+
+      const { data: publicUrlData } = supabase.storage.from('uploads').getPublicUrl(filePath);
+      fileUrl = publicUrlData.publicUrl;
+      fileName = file.name;
+    }
+
     const report = await prisma.report.create({
       data: {
-        taskId: taskId ? Number(taskId) : null,
+        taskId,
         submittedById: payload.id as number,
         type,
-        content
+        content,
+        fileUrl,
+        fileName
       }
     });
 

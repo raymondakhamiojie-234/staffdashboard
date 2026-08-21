@@ -10,6 +10,7 @@ export default function ReportsClient({ tasks, myReports }: { tasks: any[], myRe
   const [type, setType] = useState('daily');
   const [taskId, setTaskId] = useState('');
   const [content, setContent] = useState('');
+  const [file, setFile] = useState<File | null>(null);
   const [loading, setLoading] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -18,20 +19,33 @@ export default function ReportsClient({ tasks, myReports }: { tasks: any[], myRe
 
     setLoading(true);
     try {
+      const formData = new FormData();
+      formData.append('type', type);
+      formData.append('content', content);
+      if (taskId) {
+        formData.append('taskId', taskId);
+      }
+      if (file) {
+        formData.append('file', file);
+      }
+
       const res = await fetch('/api/staff/reports', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ 
-          type, 
-          taskId: taskId ? Number(taskId) : null,
-          content 
-        })
+        body: formData
       });
 
-      if (!res.ok) throw new Error('Failed to submit report');
+      if (!res.ok) {
+        const data = await res.json();
+        throw new Error(data.error || 'Failed to submit report');
+      }
 
       setContent('');
       setTaskId('');
+      setFile(null);
+      // Reset file input element if possible
+      const fileInput = document.getElementById('report-file-upload') as HTMLInputElement;
+      if (fileInput) fileInput.value = '';
+
       router.refresh();
       alert('Report submitted successfully!');
     } catch (err: any) {
@@ -86,6 +100,18 @@ export default function ReportsClient({ tasks, myReports }: { tasks: any[], myRe
               />
             </div>
 
+            <div className="input-group">
+              <label className="input-label">Attach File (Optional)</label>
+              <input 
+                id="report-file-upload"
+                type="file" 
+                className="input-field"
+                accept=".pdf,image/png,image/jpeg,image/jpg"
+                onChange={e => setFile(e.target.files?.[0] || null)}
+              />
+              <small style={{ color: 'var(--text-muted)' }}>Max 5MB. PDF or Image (PNG/JPG).</small>
+            </div>
+
             <button type="submit" className="btn btn-primary" disabled={loading} style={{ width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}>
               <Send size={16} /> {loading ? 'Submitting...' : 'Submit Report'}
             </button>
@@ -128,9 +154,24 @@ export default function ReportsClient({ tasks, myReports }: { tasks: any[], myRe
                       Task: {report.task.title}
                     </div>
                   )}
-                  <p style={{ fontSize: '0.875rem', color: 'var(--text-muted)', whiteSpace: 'pre-wrap' }}>
+                  <p style={{ fontSize: '0.875rem', color: 'var(--text-muted)', whiteSpace: 'pre-wrap', marginBottom: report.fileUrl ? '12px' : '0' }}>
                     {report.content}
                   </p>
+                  
+                  {report.fileUrl && (
+                    <div style={{ marginTop: '8px', padding: '8px', background: 'rgba(255,255,255,0.05)', borderRadius: '6px' }}>
+                      <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)', marginBottom: '4px' }}>Attached File:</div>
+                      <a 
+                        href={report.fileUrl} 
+                        target="_blank" 
+                        rel="noopener noreferrer"
+                        style={{ color: 'var(--primary)', textDecoration: 'none', fontSize: '0.875rem', display: 'flex', alignItems: 'center', gap: '4px' }}
+                      >
+                        <FileText size={14} />
+                        {report.fileName || 'View Attachment'}
+                      </a>
+                    </div>
+                  )}
                 </div>
               ))
             )}
