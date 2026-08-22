@@ -49,7 +49,7 @@ export async function POST(req: Request) {
       
       const fileBuffer = await file.arrayBuffer();
       const uniqueFileName = `${Date.now()}_${file.name.replace(/\s+/g, '_')}`;
-      const filePath = `reports/${payload.id}/${uniqueFileName}`;
+      const filePath = `task_files/reports_${payload.id}/${uniqueFileName}`;
 
       const { error: uploadError } = await supabase.storage
         .from('uploads')
