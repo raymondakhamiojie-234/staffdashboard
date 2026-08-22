@@ -59,8 +59,8 @@ export async function POST(req: Request) {
         });
 
       if (uploadError) {
-        console.error(uploadError);
-        return NextResponse.json({ error: 'Failed to upload file' }, { status: 500 });
+        console.error('Supabase upload error:', uploadError);
+        return NextResponse.json({ error: `Storage error: ${uploadError.message}` }, { status: 500 });
       }
 
       const { data: publicUrlData } = supabase.storage.from('uploads').getPublicUrl(filePath);
@@ -80,8 +80,8 @@ export async function POST(req: Request) {
     });
 
     return NextResponse.json({ message: 'Report submitted successfully', report });
-  } catch (error) {
-    console.error(error);
-    return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
+  } catch (error: any) {
+    console.error('Server error:', error);
+    return NextResponse.json({ error: `Server error: ${error.message}` }, { status: 500 });
   }
 }
