@@ -2,7 +2,7 @@ import { NextResponse } from 'next/server';
 import { cookies } from 'next/headers';
 import prisma from '@/lib/prisma';
 import { verifyToken } from '@/lib/jwt';
-import { supabase } from '@/lib/supabase';
+import { supabaseAdmin } from '@/lib/supabase';
 
 export async function POST(req: Request) {
   try {
@@ -51,7 +51,7 @@ export async function POST(req: Request) {
       const uniqueFileName = `${Date.now()}_${file.name.replace(/\s+/g, '_')}`;
       const filePath = `task_files/reports_${payload.id}/${uniqueFileName}`;
 
-      const { error: uploadError } = await supabase.storage
+      const { error: uploadError } = await supabaseAdmin.storage
         .from('uploads')
         .upload(filePath, fileBuffer, {
           contentType: file.type,
@@ -63,7 +63,7 @@ export async function POST(req: Request) {
         return NextResponse.json({ error: `Storage error: ${uploadError.message}` }, { status: 500 });
       }
 
-      const { data: publicUrlData } = supabase.storage.from('uploads').getPublicUrl(filePath);
+      const { data: publicUrlData } = supabaseAdmin.storage.from('uploads').getPublicUrl(filePath);
       fileUrl = publicUrlData.publicUrl;
       fileName = file.name;
     }

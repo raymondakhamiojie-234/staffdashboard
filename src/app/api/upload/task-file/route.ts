@@ -2,7 +2,7 @@ import { NextResponse } from 'next/server';
 import { cookies } from 'next/headers';
 import prisma from '@/lib/prisma';
 import { verifyToken } from '@/lib/jwt';
-import { supabase } from '@/lib/supabase';
+import { supabaseAdmin } from '@/lib/supabase';
 import { logActivity } from '@/lib/activity';
 
 export async function POST(req: Request) {
@@ -33,7 +33,7 @@ export async function POST(req: Request) {
     const fileName = `${Date.now()}_${file.name.replace(/\s+/g, '_')}`;
     const filePath = `task_files/${taskId}/${fileName}`;
 
-    const { data: uploadData, error: uploadError } = await supabase.storage
+    const { data: uploadData, error: uploadError } = await supabaseAdmin.storage
       .from('uploads')
       .upload(filePath, fileBuffer, {
         contentType: file.type,
@@ -45,7 +45,7 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: 'Failed to upload to Supabase Storage' }, { status: 500 });
     }
 
-    const { data: publicUrlData } = supabase.storage.from('uploads').getPublicUrl(filePath);
+    const { data: publicUrlData } = supabaseAdmin.storage.from('uploads').getPublicUrl(filePath);
     const fileUrl = publicUrlData.publicUrl;
 
     const taskFile = await prisma.taskFile.create({
