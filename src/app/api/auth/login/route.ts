@@ -6,7 +6,8 @@ import { cookies } from 'next/headers';
 
 export async function POST(req: Request) {
   try {
-    const { email, password } = await req.json();
+    const { email: rawEmail, password } = await req.json();
+    const email = rawEmail ? rawEmail.trim() : '';
 
     if (!email || !password) {
       return NextResponse.json(
@@ -20,9 +21,16 @@ export async function POST(req: Request) {
       include: { role: true },
     });
 
-    if (!user || user.isDeleted) {
+    if (!user) {
       return NextResponse.json(
-        { error: 'Invalid credentials or account deleted.' },
+        { error: 'Invalid credentials: User not found.' },
+        { status: 401 }
+      );
+    }
+
+    if (user.isDeleted) {
+      return NextResponse.json(
+        { error: 'Invalid credentials: Account has been deleted.' },
         { status: 401 }
       );
     }
@@ -31,7 +39,7 @@ export async function POST(req: Request) {
 
     if (!passwordMatch) {
       return NextResponse.json(
-        { error: 'Invalid credentials.' },
+        { error: 'Invalid credentials: Password incorrect.' },
         { status: 401 }
       );
     }
